@@ -16,9 +16,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +53,9 @@ public class MainPanel extends JPanel {
 	
 	public MainPanel() {
 		core = new Core();
+		
+		readDataFile();
+		
 		initUi();
 	}
 	
@@ -59,9 +67,6 @@ public class MainPanel extends JPanel {
 		
 		headPn = createHeadPanel();
 		add(headPn, BorderLayout.PAGE_START);
-		
-		
-//		listData = new ArrayList<String>();
 		
 		list = new JList<String>();
 		list.addListSelectionListener(new ListSelectionListener() {
@@ -80,7 +85,7 @@ public class MainPanel extends JPanel {
 		
 		resultTA = new JTextArea();
 		resultTA.setEditable(false);
-		String str = "";
+
 		
 		JPanel constraintPanel = createContraintsPanel();
 		
@@ -88,20 +93,24 @@ public class MainPanel extends JPanel {
 		
 		JPanel sourcePanel = createSourceViewPanel();
 		
-		JSplitPane splitpane2 = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-												constraintPanel, logPanel);
-		splitpane2.setDividerLocation(100);
+		JSplitPane splitpane0 = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+												logPanel, constraintPanel);
+		splitpane0.setDividerLocation(100);
 		
 		JSplitPane splitpane1 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-												splitpane2, sourcePanel);
-		splitpane1.setDividerLocation(500);
+											listScrollPane, splitpane0);
+		splitpane1.setDividerLocation(200);
 		
-		JSplitPane splitpane0 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-												listScrollPane, splitpane1);
-		splitpane0.setDividerLocation(200);
+		JPanel temp = new JPanel(new BorderLayout());
+		temp.setPreferredSize(new Dimension(800, 900));
+		temp.add(splitpane1, BorderLayout.CENTER);
+		
+		JSplitPane splitpane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+												temp, sourcePanel);
+	//	splitpane2.setDividerLocation(1000);
 
         
-		add(splitpane0, BorderLayout.CENTER);
+		add(splitpane2, BorderLayout.CENTER);
 		
    
        
@@ -132,13 +141,28 @@ public class MainPanel extends JPanel {
 					@Override
 					public void run() {
 						System.out.println("run");
+						if (recentDirectory != null) {
+							File temp = new File(recentDirectory);
+							if (temp != null && temp.isDirectory())
+								fileChooser.setInitialDirectory(temp);
+						}
+							
 						file = fileChooser.showOpenDialog(null);
+					
 						if (file != null) {
+							
+							if (file.getParent() != null) {
+								recentDirectory = file.getParent();
+								writeDataFile();
+							}
+									
 							System.out.println("filename: " + file.getName());
 							try {
+								loadSourceCode();
 								core.setPathFile(file.getAbsolutePath());
 								listData = core.getMethodSignatures();
 								list.setListData( listData );
+								repaint();
 							} catch (ModelBuildingException e) {
 								e.printStackTrace();
 							} catch (FileNotFoundException e) {
@@ -204,6 +228,7 @@ public class MainPanel extends JPanel {
 	private JPanel createLogPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
 		JLabel title = new JLabel("Constraints");
+		title.setFont(new Font("Arial", Font.PLAIN, 14));
 		panel.add(title, BorderLayout.PAGE_START);
 		
 		constraintTA = new JTextArea();
@@ -217,16 +242,72 @@ public class MainPanel extends JPanel {
 	private JPanel createSourceViewPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
 		JLabel title = new JLabel("Source code");
+		title.setFont(new Font("Arial", Font.PLAIN, 14));
 		panel.add(title, BorderLayout.PAGE_START);
 		
 		sourceView = new JTextArea();
+		sourceView.setEditable(false);
 		JScrollPane spConstraint = new JScrollPane(sourceView);
 		
 		panel.add(spConstraint, BorderLayout.CENTER);
+//		panel.setPreferredSize(new Dimension(600, 400));
 		
 		return panel;
 	}
 	
+	private void loadSourceCode() {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			String nextLine = "";
+			sourceView.setText("");
+			while (true) {
+				nextLine = br.readLine();
+				if (nextLine != null)
+					sourceView.append(nextLine + "\n");
+				else
+					break;
+			}
+			br.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void readDataFile() {
+		dataFile = new File(dateFilePath);
+		if (dataFile == null)
+			return;
+		
+		try {
+			BufferedReader bf = new BufferedReader( new FileReader(dataFile) );
+			recentDirectory = bf.readLine();
+			bf.close();
+		} catch (FileNotFoundException e) {
+		//	e.printStackTrace();
+		} catch (IOException e) {
+		//	e.printStackTrace();
+		}
+	}
+	
+	private void writeDataFile() {
+		dataFile = new File(dateFilePath);
+		if (recentDirectory == null || dataFile == null)
+			return;
+		
+		try {
+			BufferedWriter bf = new BufferedWriter( new FileWriter(dataFile) );
+			System.out.println(recentDirectory);
+			bf.write(recentDirectory);
+			bf.flush();
+			bf.close();
+		} catch (FileNotFoundException e) {
+	//		e.printStackTrace();
+		} catch (IOException e) {
+	//		e.printStackTrace();
+		}
+	}
 	
 	public static void main(String[] args) {
 		
@@ -251,6 +332,8 @@ public class MainPanel extends JPanel {
 	
 	Core core;
 	
+	String dateFilePath = "data";
+	File dataFile;
 	String recentDirectory;
 	File file;
 	

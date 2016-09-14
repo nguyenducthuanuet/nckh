@@ -49,8 +49,11 @@ public class InfixToPrefix  {
 			IFP.elementMath = elementMath;
 			IFP.elementMath[IFP.elementMath.length-1] = null;
 			for(int j = 0; j < elementMath.length - 1; j++){
-				if(!IFP.isOperator(elementMath[j].charAt(0)) && Character.isAlphabetic(elementMath[j].charAt(0))){
-					
+				if (elementMath[j].equals("return"))
+					continue;
+				
+				if(!IFP.isOperator(elementMath[j].charAt(0)) && 
+						Character.isAlphabetic(elementMath[j].charAt(0))){
 					Variable tmp = Variable.getVariable(elementMath[j], list);
 					if(tmp == null) throw new Exception("Bien khong xac dinh");
 					else elementMath[j] = elementMath[j] + "_0";
