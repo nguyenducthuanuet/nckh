@@ -83,11 +83,13 @@ public class SMTInput {
 			}
 			
 		}
-		for (String s: constraints) {
+		
+		
+		for (String s: formula) {
 			out.append("(assert " + s + ")\n");
 		}
 		
-		for (String s: formula) {
+		for (String s: constraints) {
 			out.append("(assert " + s + ")\n");
 		}
 		
