@@ -1,6 +1,8 @@
 package gui;
 
 import spoon.compiler.ModelBuildingException;
+import util.InfixToPrefix;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -256,7 +258,7 @@ public class MainPanel extends JPanel {
 	
 	private JPanel createContraintsPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		JLabel title = new JLabel("vui vai");
+		JLabel title = new JLabel("Log");
 		panel.add(title, BorderLayout.PAGE_START);
 		
 		title.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -399,9 +401,18 @@ public class MainPanel extends JPanel {
 		}
 		try {
 			resultTA.setText("");
+			
 			List<String> outputList = core.runSolver(listData[index], rawConstraints);
-			for (String str: outputList) {
-				resultTA.append(str + "\n");
+			String state = outputList.get(0);
+			if (state.equals("unsat"))
+				resultTA.setText("luôn thỏa mãn");
+			else if (state.equals("unknown"))
+				resultTA.setText("không thể xác định");
+			else {
+				resultTA.append("Tồn tại trương hợp ko thỏa mãn\n");
+				for (int i = 1; i < outputList.size(); i++) {
+					resultTA.append(outputList.get(i) + "\n");
+				}
 			}
 			
 		} catch (IOException e) {
