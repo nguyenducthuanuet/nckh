@@ -81,13 +81,6 @@ public class Core {
 		modelBuilder.build();
 	}
 	
-	public void setPathFile(String pathFile) 
-			throws ModelBuildingException, FileNotFoundException 
-	{
-		this.pathFile = pathFile;
-		create();
-	}
-	
 	private void create() 
 			throws ModelBuildingException, FileNotFoundException {
 		addInputResource(pathFile);
@@ -129,13 +122,14 @@ public class Core {
 		smtInput.setListVariables(mf.getVariables());
 		
 		constraint = new InfixToPrefix(mf.getParametersList()).getOutput(constraint);
+		constraint = "(not " + constraint + ")";
 		
 		List<String> constraints = new ArrayList<>();
 		constraints.add(constraint);
 		smtInput.setConstraints(constraints );
 	    smtInput.printInputToOutputStream(fo);
 	    List<String> result = Z3Runner.runZ3(fileDir);
-	    result.forEach(System.out::println);
+//	    result.forEach(System.out::println);
 	    
 	    return result;
 	}
@@ -157,9 +151,6 @@ public class Core {
 	private List<MethodFormularization> methods;
 	private SMTInput smtInput;
 	private String[] methodSignatures;
-
-
-
 
 	private Factory factory = createFactory();
 	private SpoonCompiler modelBuilder;
