@@ -1,21 +1,11 @@
 package gui;
 
-import javafx.stage.FileChooser;
 import spoon.compiler.ModelBuildingException;
-import util.InfixToPrefix;
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -23,12 +13,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Reader;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -46,6 +33,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -60,12 +48,10 @@ public class MainPanel extends JPanel {
 		
 		readDataFile();
 		
-		initUi();
+		initUI();
 	}
 	
-	
-	
-	protected void initUi() {
+	protected void initUI() {
 
 		setLayout(new BorderLayout());
 		
@@ -100,27 +86,6 @@ public class MainPanel extends JPanel {
         
         JScrollPane scrollPane = new JScrollPane(tree);
        
-        /*tree.addTreeSelectionListener(new TreeSelectionListener() {
-			
-			@Override
-			public void valueChanged(TreeSelectionEvent arg0) {
-				// TODO Auto-generated method stub
-		//		System.out.println(arg0.getSource());
-				DefaultMutableTreeNode node = (DefaultMutableTreeNode)
-                        tree.getLastSelectedPathComponent();
-				if (node == null) return;
-
-		        Object nodeInfo = node.getUserObject();
-		        if (node.isLeaf()) {
-		            FileNode fileNode = (FileNode)nodeInfo;
-		        	
-		            System.out.println("file: " + fileNode.getFile());
-		        } else {
-		           
-		        }
-		        
-			}
-		});*/
         tree.addTreeSelectionListener(new TreeSelectionListener() {
 			
 			@Override
@@ -129,15 +94,13 @@ public class MainPanel extends JPanel {
 				TreePath tp = e.getPath();
 				if(tp != null){
 					DefaultMutableTreeNode obj = (DefaultMutableTreeNode) tp.getLastPathComponent();
-				//	obj = (DefaultMutableTreeNode) obj;
 					Object file1 = obj.getUserObject();
-					System.out.println("file1: " + file1.getClass());
 					
 					if(file1 instanceof FileNode){
 						
 						FileNode node = (FileNode) file1;
 						file = node.getFile();
-						System.out.println("file: " + file.getAbsolutePath());
+					
 						if (file != null) {
 							
 							if (file.getParent() != null) {
@@ -145,19 +108,16 @@ public class MainPanel extends JPanel {
 								writeDataFile();
 							}
 									
-							System.out.println("filename: " + file.getName());
 							try {
 								loadSourceCode();
-								core = new Core();
-								core.setPathFile(file.getAbsolutePath());
+								
+								core = new Core(file.getAbsolutePath());
+			
 								listData = core.getMethodSignatures();
-								for(String str: listData) {
-									System.out.println(str);
-								}
 								list.setListData( listData );
-						//		repaint();
 							} catch (ModelBuildingException e1) {
-								e1.printStackTrace();
+								JOptionPane.showMessageDialog(MainPanel.this,
+			                            "Compile error!");
 							} catch (FileNotFoundException e1) {
 								e1.printStackTrace();
 							}
@@ -233,43 +193,52 @@ public class MainPanel extends JPanel {
 		openBtn.addActionListener( new ActionListener() {
 				
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				
+			public void actionPerformed(ActionEvent e) {
 					
-						JFileChooser chooser = new JFileChooser();
-				        chooser.setCurrentDirectory(new java.io.File("D:/Learn"));
-				        chooser.setDialogTitle("Please choose a file or project");
-				        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-				        chooser.setAcceptAllFileFilterUsed(false);
-				        
-				        
-				        
-				        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-				        	fileRoot = chooser.getSelectedFile();
-				          System.out.println("getCurrentDirectory(): " + chooser.getCurrentDirectory());
-				          System.out.println("getSelectedFile() : " + chooser.getSelectedFile());
-				        } else {
-				          System.out.println("No Selection ");
-				          return;
-				        }
-				        
-				        root = new DefaultMutableTreeNode(new FileNode(fileRoot));
-				        treeModel = new DefaultTreeModel(root);
+				JFileChooser chooser = new JFileChooser();
+				
+				chooser.setCurrentDirectory(new File(recentDirectory));
+				
+		        chooser.setDialogTitle("Please choose a file or project");
+		        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		        FileNameExtensionFilter filter = new FileNameExtensionFilter("Java file", "java");
+		        chooser.addChoosableFileFilter(filter);
+		        chooser.setAcceptAllFileFilterUsed(false);
+		        
+		        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+		        	fileRoot = chooser.getSelectedFile();
+		        } else {
+		          System.out.println("No Selection ");
+		          return;
+		        }
+		        
+		        if (fileRoot.isDirectory())
+		        	recentDirectory = fileRoot.getAbsolutePath();
+		        else
+		        	if (fileRoot.getParent() != null)
+		        		recentDirectory = fileRoot.getParent();
+		        writeDataFile();
+		        
+		        root = new DefaultMutableTreeNode(new FileNode(fileRoot));
+		        treeModel = new DefaultTreeModel(root);
 
-				        tree.setModel(treeModel);
-				        tree.setShowsRootHandles(true);
-				  //      JScrollPane scrollPane = new JScrollPane(tree);
-				        CreateChildNodes ccn = 
-				                new CreateChildNodes(fileRoot, root);
-				        new Thread(ccn).start();
-				        refresh();
-						
-			
+		        tree.setModel(treeModel);
+		        tree.setShowsRootHandles(true);
+		  //      JScrollPane scrollPane = new JScrollPane(tree);
+	//	        CreateChildNodes ccn = 
+	//	                new CreateChildNodes(fileRoot, root);
+	//	        new Thread(ccn).start();
 			}
 		});
 		head.add(openBtn);
 		
 		refreshBtn = new JButton("Refresh");
+		refreshBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				refresh();
+			}
+		});
 		head.add(refreshBtn);
 		
 		vertificationBtn = new JButton("Vertification");
@@ -277,31 +246,7 @@ public class MainPanel extends JPanel {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				String rawConstraints = constraintTA.getText();
-				if (rawConstraints.equals("")) {
-					JOptionPane.showMessageDialog(MainPanel.this,
-                            "Constraints aren't empty");
-					return;
-				}
-				
-//				List<String> constraints = new ArrayList<String>();
-//				constraints = new InfixToPrefix(list).getOutput(constraints);
-//				constraints.add(rawConstraints);
-			
-				try {
-					List<String> outputList = core.runSolver(listData[index], rawConstraints);
-					resultTA.setText("");
-					for (String str: outputList) {
-						resultTA.append(str + "\n");
-					}
-					
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (Exception e) {
-					JOptionPane.showMessageDialog(MainPanel.this,
-                            e.getMessage());
-				}
-			
+				vertification();
 			}
 		});
 		head.add(vertificationBtn);
@@ -311,7 +256,7 @@ public class MainPanel extends JPanel {
 	
 	private JPanel createContraintsPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		JLabel title = new JLabel("Log");
+		JLabel title = new JLabel("vui vai");
 		panel.add(title, BorderLayout.PAGE_START);
 		
 		title.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -329,10 +274,6 @@ public class MainPanel extends JPanel {
 		
 		title.setFont(new Font("Serif", Font.PLAIN, 14));
 		JScrollPane spList = new JScrollPane(list);
-		
-		String[] str = new String[1];
-		str[0] = "jkhjk";
-		list.setListData(str);
 		
 		panel.add(spList, BorderLayout.CENTER);
 		
@@ -394,6 +335,7 @@ public class MainPanel extends JPanel {
 				else
 					break;
 			}
+			sourceView.setCaretPosition(0);
 			br.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -436,8 +378,57 @@ public class MainPanel extends JPanel {
 		}
 	}
 	
-	private void refresh() {
+	private void vertification() {
+		String rawConstraints = constraintTA.getText();
 		
+		if (rawConstraints.equals("")) {
+			JOptionPane.showMessageDialog(MainPanel.this,
+                    "Constraints aren't empty");
+			return;
+		}
+		
+		
+//		List<String> constraints = new ArrayList<String>();
+//		constraints = new InfixToPrefix(list).getOutput(constraints);
+//		constraints.add(rawConstraints);
+		
+		if (index < 0) {
+			JOptionPane.showMessageDialog(MainPanel.this,
+                   "You must choose a method!");
+			return;
+		}
+		try {
+			resultTA.setText("");
+			List<String> outputList = core.runSolver(listData[index], rawConstraints);
+			for (String str: outputList) {
+				resultTA.append(str + "\n");
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(MainPanel.this,
+                    e.getMessage());
+		}
+	
+	}
+	
+	private void refresh() {
+		if (file == null)
+			return;
+		try {
+			loadSourceCode();
+			
+			core = new Core(file.getAbsolutePath());
+
+			listData = core.getMethodSignatures();
+			list.setListData( listData );
+		} catch (ModelBuildingException e1) {
+			JOptionPane.showMessageDialog(MainPanel.this,
+                    "Compile error!");
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -464,104 +455,79 @@ public class MainPanel extends JPanel {
 	//ham de thuc hien filebrowser
 	 public class FileNode {
 
-	        private File file;
+        private File file;
 
-	        public FileNode(File file) {
-	            this.file = file;
-	        }
-	        
-	        public File getFile() {
-	        	return file;
-	        }
+        public FileNode(File file) {
+            this.file = file;
+        }
+        
+        public File getFile() {
+        	return file;
+        }
 
-	        @Override
-	        public String toString() {
-	            String name = file.getName();
-	            if (name.equals("")) {
-	                return file.getAbsolutePath();
-	            } else {
-	                return name;
-	            }
-	        }
-	    }
+        @Override
+        public String toString() {
+            String name = file.getName();
+            if (name.equals("")) {
+                return file.getAbsolutePath();
+            } else {
+                return name;
+            }
+        }
+	 }
+	 
 	 public class CreateChildNodes implements Runnable {
 
-	        private DefaultMutableTreeNode root;
+        private DefaultMutableTreeNode root;
 
-	        private File fileRoot;
+        private File fileRoot;
 
-	        public CreateChildNodes(File fileRoot, 
-	                DefaultMutableTreeNode root) {
-	            this.fileRoot = fileRoot;
-	            this.root = root;
-	        }
+        public CreateChildNodes(File fileRoot, 
+                DefaultMutableTreeNode root) {
+            this.fileRoot = fileRoot;
+            this.root = root;
+        }
 
-	        @Override
-	        public void run() {
-	            createChildren(fileRoot, root);
-	        }
+        @Override
+        public void run() {
+            createChildren(fileRoot, root);
+        }
 
-	        private void createChildren(File fileRoot, 
-	                DefaultMutableTreeNode node) {
-	            File[] files = fileRoot.listFiles();
-	            if (files == null) return;
+        private void createChildren(File fileRoot, 
+                DefaultMutableTreeNode node) {
+            File[] files = fileRoot.listFiles();
+            if (files == null) return;
 
-	            for (File file : files) {
-	            		if ( !isJavaFile(file) && !file.isDirectory() )
-	            			continue;
-		            		
-		                DefaultMutableTreeNode childNode = 
-		                        new DefaultMutableTreeNode(new FileNode(file));
-		                node.add(childNode);
-		                if (file.isDirectory()) {
-		                    createChildren(file, childNode);
-		                }
-	            	}
-	            }
-	        
+            for (File file : files) {
+            		if ( !isJavaFile(file) && !file.isDirectory() )
+            			continue;
+	            		
+	                DefaultMutableTreeNode childNode = 
+	                        new DefaultMutableTreeNode(new FileNode(file));
+	                node.add(childNode);
+	                if (file.isDirectory()) {
+	                    createChildren(file, childNode);
+	                }
+            	}
+            }
+        
 
-	    }
+    }
 	 
-//	 private boolean isJavaFile(File file) {
-//		 if (file == null || file.isDirectory())
-//			 return false;
-//		 String name = file.getName();
-//		 System.out.println("name: " + name);
-//		 String[] temp = name.split(".");
-//		 System.out.println("length: " + temp.length);
-//		 if (temp.length < 2)	// file ko co duoi
-//			 return false;
-//		 String extension = temp[temp.length-1];
-//		 System.out.println(extension);
-//		 if (extension.equals("java"))
-//			 return true;
-//		 return false;
-//	 }
 	 private boolean isJavaFile(File file) {
 		 if (file == null || file.isDirectory())
 			 return false;
 		 String name = file.getName();
 		 String extension;
-//		 if (name.length() < 6)
-//			 return false;
-//		 extension = name.substring(name.length()-5);
-//		 System.out.println("extension: " + extension);
 		 
-		 System.out.println("name: " + name);
 		 String[] temp = name.split("\\.");
-//		 System.out.println(x);
-		 System.out.println("length: " + temp.length);
-		 for (String str: temp)
-		 {
-			 System.out.print(str + ".");
-		 }
-		 System.out.println();
+	
 		 if (temp.length < 2)	// file ko co duoi
 			 return false;
 		 extension = temp[temp.length-1];
-		 System.out.println(extension);
 		 if (extension.equals("java"))
 			 return true;
+		 
 		 return false;
 	 }
 	
@@ -573,7 +539,6 @@ public class MainPanel extends JPanel {
 	File file;
 	
 	JPanel headPn;
-	FileChooser fileChooser;
 	JButton openBtn;
 	JButton vertificationBtn;
 	JButton refreshBtn;
