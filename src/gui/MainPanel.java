@@ -227,9 +227,9 @@ public class MainPanel extends JPanel {
 		        tree.setModel(treeModel);
 		        tree.setShowsRootHandles(true);
 		  //      JScrollPane scrollPane = new JScrollPane(tree);
-	//	        CreateChildNodes ccn = 
-	//	                new CreateChildNodes(fileRoot, root);
-	//	        new Thread(ccn).start();
+		        CreateChildNodes ccn = 
+		                new CreateChildNodes(fileRoot, root);
+		        new Thread(ccn).start();
 			}
 		});
 		head.add(openBtn);
