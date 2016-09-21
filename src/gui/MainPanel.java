@@ -48,7 +48,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-
+import javax.swing.tree.TreePath;
 
 import formula2.Core;
 
@@ -100,7 +100,7 @@ public class MainPanel extends JPanel {
         
         JScrollPane scrollPane = new JScrollPane(tree);
        
-        tree.addTreeSelectionListener(new TreeSelectionListener() {
+        /*tree.addTreeSelectionListener(new TreeSelectionListener() {
 			
 			@Override
 			public void valueChanged(TreeSelectionEvent arg0) {
@@ -120,7 +120,54 @@ public class MainPanel extends JPanel {
 		        }
 		        
 			}
+		});*/
+        tree.addTreeSelectionListener(new TreeSelectionListener() {
+			
+			@Override
+			public void valueChanged(TreeSelectionEvent e) {
+				// TODO Auto-generated method stub
+				TreePath tp = e.getPath();
+				if(tp != null){
+					DefaultMutableTreeNode obj = (DefaultMutableTreeNode) tp.getLastPathComponent();
+				//	obj = (DefaultMutableTreeNode) obj;
+					Object file1 = obj.getUserObject();
+					System.out.println("file1: " + file1.getClass());
+					
+					if(file1 instanceof FileNode){
+						
+						FileNode node = (FileNode) file1;
+						file = node.getFile();
+						System.out.println("file: " + file.getAbsolutePath());
+						if (file != null) {
+							
+							if (file.getParent() != null) {
+								recentDirectory = file.getParent();
+								writeDataFile();
+							}
+									
+							System.out.println("filename: " + file.getName());
+							try {
+								loadSourceCode();
+								core = new Core();
+								core.setPathFile(file.getAbsolutePath());
+								listData = core.getMethodSignatures();
+								for(String str: listData) {
+									System.out.println(str);
+								}
+								list.setListData( listData );
+						//		repaint();
+							} catch (ModelBuildingException e1) {
+								e1.printStackTrace();
+							} catch (FileNotFoundException e1) {
+								e1.printStackTrace();
+							}
+							
+						}
+					}
+				}
+			}
 		});
+        
 //        CreateChildNodes ccn = 
 //                new CreateChildNodes(fileRoot, root);
 //        new Thread(ccn).start();
@@ -191,7 +238,7 @@ public class MainPanel extends JPanel {
 					
 						JFileChooser chooser = new JFileChooser();
 				        chooser.setCurrentDirectory(new java.io.File("D:/Learn"));
-				        chooser.setDialogTitle("choosertitle");
+				        chooser.setDialogTitle("Please choose a file or project");
 				        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 				        chooser.setAcceptAllFileFilterUsed(false);
 				        
@@ -216,36 +263,7 @@ public class MainPanel extends JPanel {
 				                new CreateChildNodes(fileRoot, root);
 				        new Thread(ccn).start();
 				        refresh();
-						/*System.out.println("run");
-						if (recentDirectory != null) {
-							File temp = new File(recentDirectory);
-							if (temp != null && temp.isDirectory())
-								fileChooser.setInitialDirectory(temp);
-						}
-							
-						file = fileChooser.showOpenDialog(null);
-					
-						if (file != null) {
-							
-							if (file.getParent() != null) {
-								recentDirectory = file.getParent();
-								writeDataFile();
-							}
-									
-							System.out.println("filename: " + file.getName());
-							try {
-								loadSourceCode();
-								core.setPathFile(file.getAbsolutePath());
-								listData = core.getMethodSignatures();
-								list.setListData( listData );
-								repaint();
-							} catch (ModelBuildingException e) {
-								e.printStackTrace();
-							} catch (FileNotFoundException e) {
-								e.printStackTrace();
-							}
-							
-						}*/
+						
 			
 			}
 		});
@@ -310,9 +328,13 @@ public class MainPanel extends JPanel {
 		panel.add(title, BorderLayout.PAGE_START);
 		
 		title.setFont(new Font("Serif", Font.PLAIN, 14));
-		//JScrollPane spResult = new JScrollPane(resultTA);
+		JScrollPane spList = new JScrollPane(list);
 		
-		//panel.add(spResult, BorderLayout.CENTER);
+		String[] str = new String[1];
+		str[0] = "jkhjk";
+		list.setListData(str);
+		
+		panel.add(spList, BorderLayout.CENTER);
 		
 		return panel;
 	}
@@ -485,7 +507,8 @@ public class MainPanel extends JPanel {
 	            if (files == null) return;
 
 	            for (File file : files) {
-	            	if (isJavaFile(file) || file.isDirectory()) {
+	            		if ( !isJavaFile(file) && !file.isDirectory() )
+	            			continue;
 		            		
 		                DefaultMutableTreeNode childNode = 
 		                        new DefaultMutableTreeNode(new FileNode(file));
@@ -495,20 +518,47 @@ public class MainPanel extends JPanel {
 		                }
 	            	}
 	            }
-	        }
+	        
 
 	    }
 	 
+//	 private boolean isJavaFile(File file) {
+//		 if (file == null || file.isDirectory())
+//			 return false;
+//		 String name = file.getName();
+//		 System.out.println("name: " + name);
+//		 String[] temp = name.split(".");
+//		 System.out.println("length: " + temp.length);
+//		 if (temp.length < 2)	// file ko co duoi
+//			 return false;
+//		 String extension = temp[temp.length-1];
+//		 System.out.println(extension);
+//		 if (extension.equals("java"))
+//			 return true;
+//		 return false;
+//	 }
 	 private boolean isJavaFile(File file) {
 		 if (file == null || file.isDirectory())
 			 return false;
 		 String name = file.getName();
-	//	 System.out.println("name: " + name);
-		 String[] temp = name.split(". ");
+		 String extension;
+//		 if (name.length() < 6)
+//			 return false;
+//		 extension = name.substring(name.length()-5);
+//		 System.out.println("extension: " + extension);
+		 
+		 System.out.println("name: " + name);
+		 String[] temp = name.split("\\.");
+//		 System.out.println(x);
 		 System.out.println("length: " + temp.length);
+		 for (String str: temp)
+		 {
+			 System.out.print(str + ".");
+		 }
+		 System.out.println();
 		 if (temp.length < 2)	// file ko co duoi
 			 return false;
-		 String extension = temp[temp.length-1];
+		 extension = temp[temp.length-1];
 		 System.out.println(extension);
 		 if (extension.equals("java"))
 			 return true;

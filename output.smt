@@ -27,6 +27,6 @@
 (assert (= b_3 (* a_4 b_2)))
 (assert (= return_0 true))
 (assert (= return a_4))
-(assert (> a_0 b_0))
+(assert (< b_0 3))
 (check-sat)
 (get-model)

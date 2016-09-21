@@ -1,75 +1,64 @@
 package gui;
 
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.peer.PopupMenuPeer;
-
-import javax.swing.JFrame;
-import javax.swing.JTree;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
- 
-public class TreeExample extends JFrame
-{
-    private JTree tree;
-    
-    public TreeExample()
-    {
-        //create the root node
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
-        //create the child nodes
-//        DefaultMutableTreeNode vegetableNode = new DefaultMutableTreeNode("Vegetables");
-//        DefaultMutableTreeNode fruitNode = new DefaultMutableTreeNode("Fruits");
-        
-        DefaultMutableTreeNode vegetableNode = new DefaultMutableTreeNode("Vegetables");
-        vegetableNode.add(new DefaultMutableTreeNode("Capsicum"));
-        vegetableNode.add(new DefaultMutableTreeNode("Carrot"));
-        vegetableNode.add(new DefaultMutableTreeNode("Tomato"));
-        vegetableNode.add(new DefaultMutableTreeNode("Potato"));
-         
-        DefaultMutableTreeNode fruitNode = new DefaultMutableTreeNode("Fruits");
-        fruitNode.add(new DefaultMutableTreeNode("Banana ioioioioioioioio"));
-        fruitNode.add(new DefaultMutableTreeNode("Mango"));
-        fruitNode.add(new DefaultMutableTreeNode("Apple"));
-        fruitNode.add(new DefaultMutableTreeNode("Grapes"));
-        fruitNode.add(new DefaultMutableTreeNode("Orange"));
+import javax.swing.tree.TreePath;
+import java.awt.*;
 
- 
-        //add the child nodes to the root node
-        root.add(vegetableNode);
-        root.add(fruitNode);
-         
-        //create the tree by passing in the root node
-        tree = new JTree(root);
-        tree.addMouseMotionListener(new MouseMotionListener() {
-			
-			@Override
-			public void mouseMoved(MouseEvent event) {
-//				tooltip.setPopupPosition(0,0);
+public class TreeExample extends JFrame {
 
-			}
-			
-			@Override
-			public void mouseDragged(MouseEvent e) {
-			}
-		});
-        add(tree);
-         
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setTitle("JTree Example");        
-        this.pack();
-        this.setVisible(true);
+    public TreeExample() throws HeadlessException {
+        initializeUI();
     }
-     
-    public static void main(String[] args)
-    {
+
+    private void initializeUI() {
+        setSize(200, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
+        DefaultMutableTreeNode chapterOne = new DefaultMutableTreeNode("Chapter One");
+        DefaultMutableTreeNode one = new DefaultMutableTreeNode("1.1");
+        DefaultMutableTreeNode two = new DefaultMutableTreeNode("1.2");
+        DefaultMutableTreeNode three = new DefaultMutableTreeNode("1.3");
+
+        root.add(chapterOne);
+        chapterOne.add(one);
+        chapterOne.add(two);
+        chapterOne.add(three);
+
+        JTree tree = new JTree(root);
+        tree.addTreeSelectionListener(createSelectionListener());
+
+        JScrollPane pane = new JScrollPane(tree);
+        pane.setPreferredSize(new Dimension(200, 400));
+
+        getContentPane().add(pane);
+    }
+
+    private TreeSelectionListener createSelectionListener() {
+        return new TreeSelectionListener() {
+            public void valueChanged(TreeSelectionEvent e) {
+                TreePath path = e.getPath();                
+                int pathCount = path.getPathCount();
+
+                for (int i = 0; i < pathCount; i++) {
+                    System.out.print(path.getPathComponent(i).toString());
+                    if (i + 1 != pathCount) {
+                        System.out.print("|");
+                    }
+                }
+                System.out.println("");
+            }
+        };
+    }
+
+    public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
-            @Override
             public void run() {
-                new TreeExample();
+                //new JTreeSelectionListenerDemo().setVisible(true);
             }
         });
-    }        
+    }
 }
-
