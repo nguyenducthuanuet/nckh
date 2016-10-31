@@ -16,6 +16,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -67,7 +69,6 @@ public class MainPanel extends JPanel {
 			
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
-			
 				index = e.getFirstIndex();
 				System.out.println("source: " + listData[index]);
 			}
@@ -232,6 +233,7 @@ public class MainPanel extends JPanel {
 		        new Thread(ccn).start();
 			}
 		});
+		
 		head.add(openBtn);
 		
 		refreshBtn = new JButton("Refresh");
@@ -330,14 +332,23 @@ public class MainPanel extends JPanel {
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String nextLine = "";
 			sourceView.setText("");
+			int position = 0;
+			int lineNo = 100;
+			int countLine = 1;
 			while (true) {
 				nextLine = br.readLine();
 				if (nextLine != null)
 					sourceView.append(nextLine + "\n");
 				else
 					break;
+				
+				if (countLine < lineNo) {
+					countLine++;
+					position = position + 1 + nextLine.length();
+				}
 			}
-			sourceView.setCaretPosition(0);
+		//	sourceView.setCaretPosition(0);
+			sourceView.setCaretPosition(position);
 			br.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -405,11 +416,11 @@ public class MainPanel extends JPanel {
 			List<String> outputList = core.runSolver(listData[index], rawConstraints);
 			String state = outputList.get(0);
 			if (state.equals("unsat"))
-				resultTA.setText("luôn thỏa mãn");
+				resultTA.setText("Satification");
 			else if (state.equals("unknown"))
-				resultTA.setText("không thể xác định");
+				resultTA.setText("Unknown");
 			else {
-				resultTA.append("Tồn tại trương hợp ko thỏa mãn\n");
+				resultTA.append("Unsatification\n");
 				for (int i = 1; i < outputList.size(); i++) {
 					resultTA.append(outputList.get(i) + "\n");
 				}
@@ -442,6 +453,37 @@ public class MainPanel extends JPanel {
 		}
 	}
 	
+	public int getLinePosition(int lineNumber){
+        Vector linelength=new Vector();
+        String txt=sourceView.getText();
+        int width=sourceView.getWidth();
+        StringTokenizer st=new StringTokenizer(txt,"\n ",true);
+        String str=" ";
+        int len=0;
+        linelength.addElement(new Integer(0)); //position of the first line
+        while(st.hasMoreTokens()){
+          String token=st.nextToken();
+              //get the width of the string
+              int w=sourceView.getGraphics().getFontMetrics(sourceView.getGraphics().getFont()).stringWidth(str+token);
+              if(w>width || token.charAt(0)=='\n'){
+                len=len+str.length();
+                    if(token.charAt(0)=='\n'){
+                   linelength.addElement(new Integer(len)); //positon of the line
+                    }            
+                    else{
+                       linelength.addElement(new Integer(len-1)); //positon of the line
+                    }            
+                    str=token;
+              }      
+              else{
+                str=str+token;
+              }      
+              
+        }  
+        
+        return len;
+    } //get 
+	
 	public static void main(String[] args) {
 		
 		
@@ -453,7 +495,7 @@ public class MainPanel extends JPanel {
         		
         		frame.add(panel);
         		frame.setExtendedState(JFrame.MAXIMIZED_BOTH); 
-        	//	JFrame.
+     
         	//	frame.setUndecorated(true);		// full screen
         	//	frame.setPreferredSize(new Dimension(1000, 400));
         		frame.pack();
@@ -463,7 +505,7 @@ public class MainPanel extends JPanel {
         });
 	}
 	
-	//ham de thuc hien filebrowser
+	// ham de thuc hien filebrowser
 	 public class FileNode {
 
         private File file;
