@@ -25,6 +25,7 @@ import spoon.support.compiler.FileSystemFile;
 import spoon.support.compiler.FileSystemFolder;
 import spoon.support.compiler.jdt.JDTBasedSpoonCompiler;
 import util.InfixToPrefix;
+import util.Variable;
 
 public class Core {
 	
@@ -131,7 +132,44 @@ public class Core {
 	    List<String> result = Z3Runner.runZ3(fileDir);
 //	    result.forEach(System.out::println);
 	    
-	    return result;
+	    List<String> result1 = new ArrayList<String>();
+	    List<Variable> parameters = mf.getParametersList();
+	    result1.add(result.get(0));
+	    for (Variable v: parameters) {
+	    	String varName = v.getName() + "_0"; 
+	    	for (int i = 1; i < result.size(); i++) {
+	   
+	    		if (result.get(i).indexOf(varName) >= 0) {
+	    			String valueLine = result.get(i+1);
+	    			System.out.println("value: " + valueLine);
+	    			System.out.println("indexof(\"(\"): " + valueLine.indexOf("("));
+	    			valueLine = valueLine.replace('(', ' ');
+	    			valueLine = valueLine.replace(')', ' ');
+	    			valueLine = valueLine.replace(" ", "");
+	    			System.out.println("value: " + valueLine);
+	    			result1.add(v.getName() + " = " + valueLine);
+	    			break;
+	    		}
+	    	}
+	    }
+	    
+	    for (int i = 1; i < result.size(); i++) {
+	 	   
+    		if (result.get(i).indexOf("return") >= 0) {
+    			String valueLine = result.get(i+1);
+    			System.out.println("value: " + valueLine);
+    			System.out.println("indexof(\"(\"): " + valueLine.indexOf("("));
+    			valueLine = valueLine.replace('(', ' ');
+    			valueLine = valueLine.replace(')', ' ');
+    			valueLine = valueLine.replace(" ", "");
+    			System.out.println("value: " + valueLine);
+    			result1.add("return = " + valueLine);
+    			break;
+    		}
+    	}
+	    
+	    return result1;
+//	    return result;
 	}
 	
 	private int find(String[] arr, String value) {

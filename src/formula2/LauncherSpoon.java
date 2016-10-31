@@ -15,6 +15,7 @@ import solver.SMTInput;
 import spoon.compiler.SpoonCompiler;
 import spoon.compiler.SpoonResource;
 import spoon.reflect.CtModel;
+import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
 import spoon.reflect.factory.Factory;
@@ -86,13 +87,16 @@ public class LauncherSpoon {
 		List<CtMethod> methodList = model.getElements(filter);
 		MethodFormularization test;
 		SMTInput smtInput = new SMTInput();
-		CtMethod temp = methodList.get(0);
-		methodList.clear();
-		methodList.add(temp);
+//		CtMethod temp = methodList.get(0);
+//		methodList.clear();
+//		methodList.add(temp);
 		
 		for(CtMethod m: methodList) {
 			System.out.println(m);
 			System.out.println("m.getSignature: " + m.getSignature());
+			System.out.println("m.position: " + m.getPosition());
+			SourcePosition sp = m.getPosition();
+			sp.getLine();
 
 			test = new MethodFormularization(m);
 //			System.out.println("f: " + test.methodAbstraction());
@@ -105,7 +109,7 @@ public class LauncherSpoon {
 					System.out.println("check double bracket false" + "/n-------------------------------");
 
 			}
-			
+/*			
 			try {
 				String fileDir = "output.smt";
 			    FileOutputStream fo = new FileOutputStream(fileDir);
@@ -121,7 +125,7 @@ public class LauncherSpoon {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+*/
 //			System.out.println("SMT input:");
 //			smtInput.setFormula(test.getFormula());
 //			smtInput.setListVariables(test.getVariables());
