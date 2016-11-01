@@ -159,7 +159,8 @@ public abstract class Formularization {
 		String opStr = Helper.getUnaryOperator(operator);
 		String exp = null;
 		String f;
-		if (opStr.equals("+") || opStr.equals("-")) {
+		if (opStr.equals("++") || opStr.equals("--")) {
+			opStr = opStr.substring(1);
 			exp = wrap(variable.getValue(), opStr, "1");
 			variable.increase();
 			f = wrap(variable.getValue(), "=", exp);

@@ -164,7 +164,8 @@ public abstract class Formularization {
 		String opStr = Helper.getUnaryOperator(operator);
 		String exp = null;
 		String f;
-		if (opStr.equals("+") || opStr.equals("-")) {
+		if (opStr.equals("++") || opStr.equals("--")) {
+			opStr = opStr.substring(1);
 			exp = wrap(variable.getValue(), opStr, "1");
 			variable.increase();
 			f = wrap(variable.getValue(), "=", exp);
@@ -355,9 +356,12 @@ public abstract class Formularization {
 	}
 	
 	public String formularize(CtVariableAccess var) {
+	
 		Variable v = Variable.getVariable(var.toString(), listVariables);
-		if (v == null)
+		if (v == null) {
+			System.out.println("var: " + var);
 			return "n/a";
+		}
 		
 		return v.getValue();
 	}

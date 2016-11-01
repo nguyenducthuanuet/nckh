@@ -234,7 +234,7 @@ public class ForFormularization extends Formularization {
 	
 	private CtFor loop;
 	
-	protected int defaultNumOfLoop = 4;
+	protected int defaultNumOfLoop = 10;
 	
 	String forFlagVal;
 	

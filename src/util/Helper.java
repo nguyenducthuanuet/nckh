@@ -41,6 +41,10 @@ public class Helper {
 			opStr = "and";
 		else if(operator == BinaryOperatorKind.OR)
 			opStr = "or";
+		else if(operator == BinaryOperatorKind.NE)
+			opStr = "distinct";
+		else 
+			System.out.println("operator: " + operator);
 		
 		return opStr;
 	}
@@ -48,15 +52,21 @@ public class Helper {
 	public static String getUnaryOperator(UnaryOperatorKind operator) {
 		String opStr = "n/a";
 		if(operator == UnaryOperatorKind.POSTDEC)
-			opStr = "-";
+			opStr = "--";
 		else if(operator == UnaryOperatorKind.PREDEC)
-			opStr = "-";
+			opStr = "--";
 		else if(operator == UnaryOperatorKind.POSTINC)
-			opStr = "+";
+			opStr = "++";
 		else if(operator == UnaryOperatorKind.PREINC)
-			opStr = "+";
+			opStr = "++";
 		else if(operator == UnaryOperatorKind.NOT)
 			opStr = "not";
+		else if(operator == UnaryOperatorKind.NEG)
+			opStr = "-";
+		else if(operator == UnaryOperatorKind.POS)
+			opStr = "+";
+		else
+			System.out.println("unary operator: " + operator);
 		
 		return opStr;
 	}

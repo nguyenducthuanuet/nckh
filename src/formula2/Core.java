@@ -102,7 +102,7 @@ public class Core {
 		}
 	}
 	
-	public List<String> runSolver(String methodSignature, String constraint) 
+	public List<String> runSolver(String methodSignature,List<String> conditions) 
 				throws Exception {
 		
 		int index = find(methodSignatures, methodSignature);
@@ -122,15 +122,19 @@ public class Core {
 	    smtInput.setFormula(mf.getFormula());
 		smtInput.setListVariables(mf.getVariables());
 		
-		constraint = new InfixToPrefix(mf.getParametersList()).getOutput(constraint);
-		constraint = "(not " + constraint + ")";
+		String constraintTemp;
+		for(int i = 0; i < conditions.size(); i++) {
+			constraintTemp = new InfixToPrefix(mf.getParametersList()).getOutput(conditions.get(i));
+			constraintTemp = "(not " + constraintTemp + ")";
+			conditions.set(i, constraintTemp);
+		}
 		
 		List<String> constraints = new ArrayList<>();
-		constraints.add(constraint);
-		smtInput.setConstraints(constraints );
+		constraints.addAll(conditions);
+		smtInput.setConstraints(constraints);
 	    smtInput.printInputToOutputStream(fo);
 	    List<String> result = Z3Runner.runZ3(fileDir);
-//	    result.forEach(System.out::println);
+	    result.forEach(System.out::println);
 	    
 	    List<String> result1 = new ArrayList<String>();
 	    List<Variable> parameters = mf.getParametersList();
@@ -141,12 +145,12 @@ public class Core {
 	   
 	    		if (result.get(i).indexOf(varName) >= 0) {
 	    			String valueLine = result.get(i+1);
-	    			System.out.println("value: " + valueLine);
-	    			System.out.println("indexof(\"(\"): " + valueLine.indexOf("("));
+	//    			System.out.println("value: " + valueLine);
+	//    			System.out.println("indexof(\"(\"): " + valueLine.indexOf("("));
 	    			valueLine = valueLine.replace('(', ' ');
 	    			valueLine = valueLine.replace(')', ' ');
 	    			valueLine = valueLine.replace(" ", "");
-	    			System.out.println("value: " + valueLine);
+	//    			System.out.println("value: " + valueLine);
 	    			result1.add(v.getName() + " = " + valueLine);
 	    			break;
 	    		}

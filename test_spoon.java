@@ -1,18 +1,20 @@
 
 public class test_spoon{
+	
+/*
 	public static int minab(int a, int b){
 		int d = 5, c = d;
 		int e;
 		e = 5;
 		a = a - b + c +e;
 	
-		/*
-		for(int i = 0; i < 100; i++) {
-			a = a - b;
-			b = a*b;
-			if(b == a)
-				a = b + 1;
-		}*/
+		
+//		for(int i = 0; i < 100; i++) {
+//			a = a - b;
+//			b = a*b;
+//			if(b == a)
+//				a = b + 1;
+//		}
 		
 		if(a > b){
 			int g = 100;
@@ -91,6 +93,42 @@ public class test_spoon{
 		}
 		
 		return a/b;
+	}
+	
+*/
+	
+	public int ucln1(int a, int b) {
+		if (a < 0)
+			a = -a;
+		if (b < 0)
+			b = -b;
+		if (a == 0 || b == 0)
+			return 1;
+		while(a != b) {
+			if(a > b)
+				a = a - b;
+			else
+				b = b - a;
+		}
+		
+		return a;
+	}
+	
+	public int ucln2(int a, int b) {
+		if (a < 0)
+			a = --a;
+		if (b < 0)
+			b = -b;
+		
+		if (a == 0 || b == 0)
+			return 1;
+		
+		while(0 != b) {
+			b = a % b;
+			a = b;
+		}
+		
+		return a;
 	}
 
 	/*

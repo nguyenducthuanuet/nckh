@@ -142,7 +142,7 @@ public class WhileFormularization extends Formularization {
 	
 	private CtWhile loop;
 	
-	protected int defaultNumOfLoop = 4;
+	protected int defaultNumOfLoop = 10;
 	
 	String whileFlagVal;
 	

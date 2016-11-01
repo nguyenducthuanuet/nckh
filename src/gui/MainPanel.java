@@ -15,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -294,11 +295,11 @@ public class MainPanel extends JPanel {
 		label1.setFont(new Font("Serif", Font.ITALIC, 14));
 		JLabel label2 = new JLabel("Post-condition:");
 		label2.setFont(new Font("Serif", Font.ITALIC, 14));
-		constraintTA1 = new JTextArea();
-		constraintTA = new JTextArea();
-		JScrollPane spConstraint1 = new JScrollPane(constraintTA1);
+		preconditionTA = new JTextArea();
+		postconditionTA = new JTextArea();
+		JScrollPane spConstraint1 = new JScrollPane(preconditionTA);
 	
-		JScrollPane spConstraint = new JScrollPane(constraintTA);
+		JScrollPane spConstraint = new JScrollPane(postconditionTA);
 		
 		JSplitPane tmp1 = new JSplitPane(JSplitPane.VERTICAL_SPLIT, label1, spConstraint1);
 		tmp1.setDividerLocation(30);
@@ -392,13 +393,33 @@ public class MainPanel extends JPanel {
 	}
 	
 	private void vertification() {
-		String rawConstraints = constraintTA.getText();
+		String precondition = preconditionTA.getText();
+		String postcondition = postconditionTA.getText();
 		
-		if (rawConstraints.equals("")) {
+		List<String> conditions = new ArrayList<>();
+		
+		if ( !precondition.equals("") ) {
+			conditions.add(precondition);
+		}
+		
+		if ( !postcondition.equals("")) {
+			conditions.add(postcondition);
+		}
+		
+		if ( conditions.size() == 0) {
 			JOptionPane.showMessageDialog(MainPanel.this,
                     "Constraints aren't empty");
 			return;
 		}
+		
+		/*if (postcondition.equals("") && precondition.equals("")) {
+			JOptionPane.showMessageDialog(MainPanel.this,
+                    "Constraints aren't empty");
+			return;
+		}*/
+		
+		
+		
 		
 		
 //		List<String> constraints = new ArrayList<String>();
@@ -413,7 +434,7 @@ public class MainPanel extends JPanel {
 		try {
 			resultTA.setText("");
 			
-			List<String> outputList = core.runSolver(listData[index], rawConstraints);
+			List<String> outputList = core.runSolver(listData[index], conditions);
 			String state = outputList.get(0);
 			if (state.equals("unsat"))
 				resultTA.setText("Satification");
@@ -429,6 +450,8 @@ public class MainPanel extends JPanel {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("hello");
 			JOptionPane.showMessageDialog(MainPanel.this,
                     e.getMessage());
 		}
@@ -600,8 +623,8 @@ public class MainPanel extends JPanel {
 	String[] listData;
 	
 	
-	JTextArea constraintTA1;
-	JTextArea constraintTA;
+	JTextArea preconditionTA;
+	JTextArea postconditionTA;
 	JTextArea resultTA;
 	JTextArea sourceView;
 	
