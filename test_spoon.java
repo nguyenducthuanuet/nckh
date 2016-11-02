@@ -103,7 +103,7 @@ public class test_spoon{
 		if (b < 0)
 			b = -b;
 		if (a == 0 || b == 0)
-			return 1;
+			return a + b;
 		while(a != b) {
 			if(a > b)
 				a = a - b;
@@ -116,7 +116,7 @@ public class test_spoon{
 	
 	public int ucln2(int a, int b) {
 		if (a < 0)
-			a = --a;
+			a = -a;
 		if (b < 0)
 			b = -b;
 		

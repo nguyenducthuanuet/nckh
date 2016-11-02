@@ -109,7 +109,7 @@ public class Core {
 		
 		MethodFormularization mf = methods.get(index);
 		
-		String fileDir = "output.smt";
+		String fileDir = "input.smt";
 	    FileOutputStream fo = new FileOutputStream(fileDir);
 	    if (mf == null) {
 	    	System.out.println(mf);
@@ -133,7 +133,8 @@ public class Core {
 		constraints.addAll(conditions);
 		smtInput.setConstraints(constraints);
 	    smtInput.printInputToOutputStream(fo);
-	    List<String> result = Z3Runner.runZ3(fileDir);
+	 //   List<String> result = Z3Runner.runZ3(fileDir);
+	    result = Z3Runner.runZ3(fileDir);
 	    result.forEach(System.out::println);
 	    
 	    List<String> result1 = new ArrayList<String>();
@@ -176,6 +177,10 @@ public class Core {
 //	    return result;
 	}
 	
+	public List<String> getSolverLog() {
+		return result;
+	}
+	
 	private int find(String[] arr, String value) {
 		if (arr == null || value == null) 
 			return -1;
@@ -197,4 +202,6 @@ public class Core {
 	private Factory factory = createFactory();
 	private SpoonCompiler modelBuilder;
 	private Filter<CtType<?>> typeFilter;
+	
+	List<String> result;
 }

@@ -29,9 +29,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ListSelectionEvent;
@@ -39,9 +41,12 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.FontUIResource;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+
+import com.sun.org.apache.xalan.internal.xsltc.trax.SmartTransformerFactoryImpl;
 
 import formula2.Core;
 
@@ -138,9 +143,7 @@ public class MainPanel extends JPanel {
 //		
 //		JScrollPane listScrollPane = new JScrollPane(list);		
 //	
-		
-		resultTA = new JTextArea();
-		resultTA.setEditable(false);
+
 
 		
 		JPanel constraintPanel = createContraintsPanel();
@@ -261,14 +264,42 @@ public class MainPanel extends JPanel {
 	
 	private JPanel createContraintsPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		JLabel title = new JLabel("Log");
-		panel.add(title, BorderLayout.PAGE_START);
 		
-		title.setFont(new Font("Arial", Font.PLAIN, 14));
-		JScrollPane spResult = new JScrollPane(resultTA);
+		resultTA = new JTextArea();
+		resultTA.setEditable(false);
 		
-		panel.add(spResult, BorderLayout.CENTER);
+		smtInput = new JTextArea();
+		smtInput.setEditable(false);
 		
+		smtLog = new JTextArea();
+		smtLog.setEditable(false);
+		
+		
+		JTabbedPane tabbedpane = new JTabbedPane();
+		
+		try {
+		//	Font font = UIManager.getDefaults().getFont("TabbedPane.font");
+        //    font = font.deriveFont(16f);
+		//	UIManager.getDefaults().put("TabbedPane.font", new FontUIResource(font));
+			Font font = new Font("Arial", Font.PLAIN, 14);
+			UIManager.getDefaults().put("TabbedPane.font", new FontUIResource(font));
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
+	//	JLabel title = new JLabel("Log");
+	//	panel.add(title, BorderLayout.PAGE_START);
+		
+	//	title.setFont(new Font("Arial", Font.PLAIN, 14));
+	//	JScrollPane spResult = new JScrollPane(resultTA);
+		tabbedpane.add("Log", new JScrollPane(resultTA));
+		tabbedpane.add("SMT input", new JScrollPane(smtInput));
+		tabbedpane.add("Solver log", new JScrollPane(smtLog));
+		
+		
+		
+		panel.add(tabbedpane, BorderLayout.CENTER);
+
 		return panel;
 	}
 	
@@ -308,6 +339,7 @@ public class MainPanel extends JPanel {
 		JSplitPane tmp = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tmp1, tmp2);
 		tmp.setDividerLocation(200);
 		panel.add(tmp, BorderLayout.CENTER);
+		
 		
 		return panel;
 	}
@@ -350,6 +382,29 @@ public class MainPanel extends JPanel {
 			}
 		//	sourceView.setCaretPosition(0);
 			sourceView.setCaretPosition(position);
+			br.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void loadSMTInput() {
+		File file = new File("input.smt");
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			String nextLine = "";
+			smtInput.setText("");
+			while (true) {
+				nextLine = br.readLine();
+				if (nextLine != null)
+					smtInput.append(nextLine + "\n");
+				else
+					break;
+				
+			}
+			smtInput.setCaretPosition(0);
 			br.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -420,8 +475,6 @@ public class MainPanel extends JPanel {
 		
 		
 		
-		
-		
 //		List<String> constraints = new ArrayList<String>();
 //		constraints = new InfixToPrefix(list).getOutput(constraints);
 //		constraints.add(rawConstraints);
@@ -435,16 +488,25 @@ public class MainPanel extends JPanel {
 			resultTA.setText("");
 			
 			List<String> outputList = core.runSolver(listData[index], conditions);
+			List<String> solverLog = core.getSolverLog();
+			
 			String state = outputList.get(0);
 			if (state.equals("unsat"))
-				resultTA.setText("Satification");
+				resultTA.setText(SATLOG);
 			else if (state.equals("unknown"))
 				resultTA.setText("Unknown");
 			else {
-				resultTA.append("Unsatification\n");
+				resultTA.append(UNSATLOG + "\n");
 				for (int i = 1; i < outputList.size(); i++) {
 					resultTA.append(outputList.get(i) + "\n");
 				}
+			}
+			
+			loadSMTInput();
+			
+			smtLog.setText("");
+			for(String str: solverLog) {
+				smtLog.append(str + "\n");
 			}
 			
 		} catch (IOException e) {
@@ -468,6 +530,10 @@ public class MainPanel extends JPanel {
 
 			listData = core.getMethodSignatures();
 			list.setListData( listData );
+			
+			resultTA.setText("");
+			smtInput.setText("");
+			smtLog.setText("");
 		} catch (ModelBuildingException e1) {
 			JOptionPane.showMessageDialog(MainPanel.this,
                     "Compile error!");
@@ -627,6 +693,8 @@ public class MainPanel extends JPanel {
 	JTextArea postconditionTA;
 	JTextArea resultTA;
 	JTextArea sourceView;
+	JTextArea smtInput;
+	JTextArea smtLog;
 	
 	private DefaultMutableTreeNode root;
 
@@ -635,4 +703,7 @@ public class MainPanel extends JPanel {
     private JTree tree;
 	File fileRoot;
 	int index = -1;
+	
+	static String SATLOG = " SAT(post condtion is alwways true)";
+	static String UNSATLOG = "UNSAT(post condition is not always true, example: ";
 }
